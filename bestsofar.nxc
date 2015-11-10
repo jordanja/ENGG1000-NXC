@@ -1,0 +1,74 @@
+int sem;
+mutex moveMutex;
+int insem;
+int fromother;
+task move_circle()
+{
+      if (fromother == 1){
+       Off (OUT_AC);
+      fromother = 0;
+      Wait(1000);
+    }
+
+  while (true) {
+
+    until (sem == 0); 
+    sem = 1;
+    Acquire(moveMutex);
+    OnFwd(OUT_A, 100);
+    OnRev(OUT_C,100);
+
+    sem = 0;
+   
+    Release(moveMutex);
+    
+   fromother = 1;
+    until (sem == 0); 
+    /*
+    sem = 1;
+    OnRev(OUT_C, 75);
+    sem = 0;
+    Wait(850);
+    */
+    //Off(OUT_AC);
+  }
+}
+
+task attack() {
+insem = 0;
+
+while (true){
+    while ((SensorUS(IN_4)<50) && ((sem == 0) || (insem == 1))){
+        if (fromother == 1){
+            Off(OUT_AC);
+            //Wait(1000);
+            fromother = 0;
+        }
+        insem = 1;
+        sem = 1;
+        Acquire(moveMutex);
+        OnFwd(OUT_AC, 100); 
+        Release(moveMutex);
+        TextOut(5,LCD_LINE5,"enter attack");
+        Wait(1000);
+
+    }
+    if (insem ==1){
+        TextOut(5,LCD_LINE6,"out attack");
+    }
+    fromother = 1;
+    sem = 0;
+    //insem = 0;
+    TextOut(5,LCD_LINE5,"                           ");
+    }
+
+}
+
+task main()
+{
+
+    SetSensorUltrasonic(IN_4);
+    sem = 0;
+    fromother = 0;
+    Precedes(move_circle, attack);
+}

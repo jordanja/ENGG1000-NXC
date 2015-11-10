@@ -1,0 +1,127 @@
+#define K_INITIAL_WAIT_TIME 3000
+#define K_SENSOR_LIGHT_SENSOR1_PORT IN_1
+#define K_SENSOR_LIGHT_SENSOR2_PORT IN_2
+#define K_SENSOR_ULTRASONIC_PORT	IN_4
+#define K_SENSOR_LIGHT_SENSOR1_THRESHOLD 30
+#define K_SENSOR_LIGHT_SENSOR2_THRESHOLD 30
+#define K_WHEEL_SPEED_SCAN 70
+#define K_WHEEL_SPEED_SEEK 100
+
+#define K_WHEEL_LEFT_PORT OUT_C
+#define K_WHEEL_RIGHT_PORT OUT_A
+#define K_SENSOR_LIGHT_SENSOR_TYPE IN_TYPE_LIGHT_ACTIVE
+#define CLEARLINE(L) \
+ 		TextOut(0,L," ");
+
+#define TRUE 1
+#define FALSE 0
+
+
+
+
+task stayWithinBounds();
+task scanArea();
+int validateUSSensor();
+task seekRobot();
+
+task main()
+{
+	Wait(K_INITIAL_WAIT_TIME);
+	start scanArea;	
+	while (TRUE) {
+
+	}
+}
+
+
+// This task will ensure the robot will stay within the bounds of the board
+// This will be done by checking the light sensors, and if it is near the bounds
+// get exclusive access of the motors using Acquire() and move the robot away
+// from the boundaries (ie, turn around). Once complete, run Release() to give 
+// control back to SeekAndDestroy. 
+
+task scanArea() {
+	SetSensorUltrasonic(K_SENSOR_ULTRASONIC_PORT);
+	OnFwd(K_WHEEL_LEFT_PORT, K_WHEEL_SPEED_SCAN);
+	OnRev(K_WHEEL_RIGHT_PORT, K_WHEEL_SPEED_SCAN);
+	until(SensorUS(IN_3) != 255);
+	Wait(100);
+	until(SensorUS(IN_3) != 255);
+	Wait(100);
+	until(SensorUS(IN_3) != 255);
+	Off(K_WHEEL_LEFT_PORT);
+	Off(K_WHEEL_RIGHT_PORT);
+	//move toward found robot. 
+	start seekRobot;
+}
+
+
+task seekRobot() {
+	OnFwd(K_WHEEL_LEFT_PORT, K_WHEEL_SPEED_SEEK);
+	OnFwd(K_WHEEL_RIGHT_PORT, K_WHEEL_SPEED_SEEK);
+	while(TRUE) {
+		if (validateUSSensor() == FALSE) {
+			Off(K_WHEEL_LEFT_PORT);
+			Off(K_WHEEL_RIGHT_PORT);
+			OnFwd(K_WHEEL_LEFT_PORT, K_WHEEL_SPEED_SEEK);
+			OnRev(K_WHEEL_RIGHT_PORT, K_WHEEL_SPEED_SEEK);
+		}
+		else {
+			OnFwd(K_WHEEL_LEFT_PORT, K_WHEEL_SPEED_SCAN);
+			OnFwd(K_WHEEL_RIGHT_PORT, K_WHEEL_SPEED_SCAN);
+		}
+	}
+}
+
+int validateUSSensor() {
+	int i = 0;
+	int sensorTrue = 0;
+	while (i < 15) {
+		if (SensorUS(IN_3) != 255) {
+			sensorTrue ++;
+		}
+		i++;
+	}
+	if (sensorTrue > 5) {
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
+}
+/*
+task stayWithinBounds() {
+	SetSensorLight(K_SENSOR_LIGHT_SENSOR1_PORT, FALSE);
+
+	SetSensorLight(K_SENSOR_LIGHT_SENSOR2_PORT, FALSE);
+	
+
+	while (TRUE) {
+		CLEARLINE(LCD_LINE3);
+		// char * str = FormatNum("S1: %d", LCD_LINE3);
+		TextOut(0,LCD_LINE3,"S1");
+		// TextOut(0, LCD_LINE3, str);
+		TextOut(30, LCD_LINE3, NumToStr( SensorUS(IN_3)));
+		if (SensorUS(IN_3) < 30) {
+			OnFwd(OUT_A, 50);
+			Wait(300);
+			Off(OUT_A);
+		}
+		// NumOut(0, 0,);
+		// if (SENSOR_1 > K_SENSOR_LIGHT_SENSOR1_THRESHOLD || SENSOR_2 > K_SENSOR_LIGHT_SENSOR2_THRESHOLD) {
+		// 	// OnFwd(OUT_A, 50);
+		// 	// Wait(300);
+		// 	// Off(OUT_A);
+
+		// 	//Move the robot somehow to move it away from the line.
+		// 	// release motorMutex ;
+		// }
+	}
+}
+*/
+// This task is designed to find an object within close bounds, using
+// the ultrasound sensors, and move towards it. 
+// The task then will push the robot out of the ring. 
+// task seekAndDestroy() {
+
+// }

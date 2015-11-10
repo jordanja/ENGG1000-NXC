@@ -1,0 +1,18 @@
+task main() {
+	int count = 0;
+
+	OnFwd(OUT_AC, 50);
+
+	while(count < 10000){
+		NumOut(40, LCD_LINE3, count);
+		count = count + 1;
+		TextOut(40,LCD_LINE3,"             "); 
+	}
+
+
+
+
+
+
+
+}

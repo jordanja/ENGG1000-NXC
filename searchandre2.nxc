@@ -1,0 +1,84 @@
+
+
+int sem;
+mutex moveMutex;
+int insem;
+int fromother;
+#define calibration 55
+
+
+task move_circle() {
+    if (fromother == 1){
+        Off (OUT_AC);
+        fromother = 0;
+        Wait(100);
+    }
+
+    while (true) {
+
+        until (sem == 0); 
+            sem = 1;
+            Acquire(moveMutex);
+            OnFwd(OUT_A, 50);
+            OnFwd(OUT_C,50);
+
+            sem = 0;
+
+            Release(moveMutex);
+
+            fromother = 1;
+        until (sem == 0); 
+
+    }
+}
+
+
+
+task out_of_bounds(){
+//input 3
+    while (true){
+
+        if (fromother == 1){
+            Off (OUT_AC);
+            fromother = 0;
+            Wait(50);
+        }
+
+        while (SENSOR_3 <= calibration){
+            TextOut(5,LCD_LINE1,"in left"); 
+            Acquire(moveMutex);
+            Off(OUT_A);
+            Wait(100);
+            OnFwd(OUT_C,50);
+            Release(moveMutex);
+            TextOut(5,LCD_LINE1,"                "); 
+        } 
+
+         while (SENSOR_4 <= calibration){
+            TextOut(5,LCD_LINE1,"in right"); 
+            Acquire(moveMutex);
+            Off(OUT_C);
+            Wait(100);
+            OnFwd(OUT_A,50);
+            Release(moveMutex);
+            TextOut(5,LCD_LINE1,"                "); 
+        }
+
+
+    }
+
+}
+
+
+
+task main()
+{
+    Wait(3000);
+    SetSensorLight(IN_3);
+    SetSensorLight(IN_4);
+    sem = 0;
+    fromother = 0;
+    Precedes(move_circle, out_of_bounds);
+}
+
+

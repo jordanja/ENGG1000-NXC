@@ -1,0 +1,41 @@
+int sem;
+mutex moveMutex;
+int insem;
+int fromother;
+#define calibration 45
+
+
+task move_forward() {
+    
+
+    while ((SENSOR_3 >= calibration) && (SENSOR_4 >= calibration)) {
+
+       
+            sem = 1;
+            Acquire(moveMutex);
+            OnFwd(OUT_A, 50);
+            OnFwd(OUT_C, 50);
+
+            sem = 0;
+
+            Release(moveMutex);
+
+            
+        //until (sem == 0); 
+
+    }
+}
+
+
+
+
+task main()
+{
+    //Wait(100);
+    SetSensorLight(IN_3);
+
+    SetSensorLight(IN_4);
+    sem = 0;
+    
+    Precedes(move_forward);
+}

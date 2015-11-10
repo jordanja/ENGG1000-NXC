@@ -1,0 +1,205 @@
+task main() {
+    int intensityLeft;
+    int intensityRight;
+    int leftPower;
+    int rightPower;
+    int turn;
+    int threshold;
+    int power = 30;
+    int min = 999;
+    int max = -1;
+    unsigned long end_time;
+    int foundLeft;
+    int foundRight;
+    int foundForward;
+    int random;
+    #define RIGHT_MOTOR OUT_C
+    #define LEFT_MOTOR OUT_B
+    #define BOTH_MOTORS OUT_BC
+    #define ARM_MOTOR OUT_A
+
+    SetSensorLight(IN_3);
+    SetSensorLight(IN_4);
+    SetSensorTouch(IN_2);
+    Wait(200);
+
+    // calibration: turn left
+
+    end_time = CurrentTick() + 500;
+    OnFwd(RIGHT_MOTOR, 50);
+    OnRev(LEFT_MOTOR, 50);
+    while (CurrentTick() < end_time) {
+        intensityLeft = Sensor(IN_3);
+        if (intensityLeft > max) {
+            max = intensityLeft;
+        } else if (intensityLeft < min) {
+            min = intensityLeft;
+        }
+    }
+
+    // calibration: turn right
+
+    end_time = CurrentTick() + 1000;
+    OnFwd(LEFT_MOTOR, 50);
+    OnRev(RIGHT_MOTOR, 50);
+    while (CurrentTick() < end_time) {
+        intensityLeft = Sensor(IN_3);
+        if (intensityLeft > max) {
+            max = intensityLeft;
+        } else if (intensityLeft < min) {
+            min = intensityLeft;
+        }
+    }
+
+    threshold = (min+max)/2;
+
+    ClearLine(LCD_LINE3);
+    NumOut(40, LCD_LINE2, threshold);
+
+    // calibration done, find the edge of the line
+
+    OnFwd(RIGHT_MOTOR, 50);
+    OnRev(LEFT_MOTOR, 50);
+    while (Sensor(IN_3) > threshold) {
+    }
+    Wait(200);
+    TextOut(5,LCD_LINE1,"found line"); 
+    Off(BOTH_MOTORS);
+
+    // and follow it
+
+    while (SENSOR_2 != 1) {
+        intensityLeft = Sensor(IN_3);
+        intensityRight = Sensor(IN_4) + 12;
+        NumOut(5, LCD_LINE3, intensityLeft);
+        NumOut(40, LCD_LINE3, intensityRight);
+
+        if ((intensityLeft < threshold * 0.9) && (intensityRight < threshold * 0.9)) {
+            OnFwd(BOTH_MOTORS,40);
+            Wait(200);
+            Off(BOTH_MOTORS);
+            TextOut(5,LCD_LINE1,"t intersection"); 
+
+            Wait(10);
+            random = Random(1000) % 2;
+            NumOut(40, LCD_LINE6, random);
+            if (random == 1) {
+                OnFwd(LEFT_MOTOR,40);
+                OnRev(RIGHT_MOTOR,40);
+                Wait(1200);
+
+
+            } else if (random == 0) {
+                OnFwd(RIGHT_MOTOR,40);
+                OnRev(LEFT_MOTOR,40);
+                Wait(1200);
+            }
+        Off(BOTH_MOTORS);
+        Wait(10);
+
+        } if (abs(intensityLeft - intensityRight) < 5){
+            TextOut(5,LCD_LINE4,"Forward"); 
+
+            OnFwd(BOTH_MOTORS,30);
+            Wait(100);
+        }
+        if (intensityLeft - intensityRight >= 5){
+            TextOut(5,LCD_LINE4,"right"); 
+            OnFwd(LEFT_MOTOR,40);
+            OnRev(RIGHT_MOTOR,40);
+            Wait(50);
+        }
+        if (intensityRight - intensityLeft > 5){
+            TextOut(5,LCD_LINE4,"left"); 
+            OnFwd(RIGHT_MOTOR,40);
+            OnRev(LEFT_MOTOR,40);
+            Wait(50);
+        } 
+
+        Off(BOTH_MOTORS);
+        Wait(10);
+        TextOut(5,LCD_LINE4,"                  "); 
+
+    }
+
+
+    Off(BOTH_MOTORS);
+    Wait(10);
+    PlayTone(440, 500);
+
+    OnFwd(ARM_MOTOR,50);
+    Wait(500);
+    Off(ARM_MOTOR);
+    Wait(10);
+
+
+
+    OnRev(LEFT_MOTOR,30);
+    OnFwd(RIGHT_MOTOR,30);
+    Wait(2000);
+
+    Off(BOTH_MOTORS);
+    Wait(10);
+
+    OnFwd(RIGHT_MOTOR, 50);
+    OnRev(LEFT_MOTOR, 50);
+    while (Sensor(IN_3) > threshold) {
+    }
+
+    while (TRUE) {
+        intensityLeft = Sensor(IN_3);
+        intensityRight = Sensor(IN_4) + 12;
+        TextOut(5,LCD_LINE1,"                                                                  "); 
+        NumOut(5, LCD_LINE3, intensityLeft);
+        NumOut(40, LCD_LINE3, intensityRight);
+
+
+        if ((intensityLeft < threshold * 0.9) && (intensityRight < threshold * 0.9)) {
+            OnFwd(BOTH_MOTORS,40);
+            Wait(200);
+            Off(BOTH_MOTORS);
+            TextOut(5,LCD_LINE1,"t intersection"); 
+
+            Wait(10);
+            random = Random(1000) % 2;
+            if (random == 1) {
+                OnFwd(LEFT_MOTOR,40);
+                OnRev(RIGHT_MOTOR,40);
+                Wait(1200);
+
+
+            } else if (random == 0) {
+                OnFwd(RIGHT_MOTOR,40);
+                OnRev(LEFT_MOTOR,40);
+                Wait(1200);
+            }
+        Off(BOTH_MOTORS);
+        Wait(10);
+
+        
+        } if (abs(intensityLeft - intensityRight) < 5){
+            OnFwd(BOTH_MOTORS,30);
+            OnFwd(ARM_MOTOR,30);
+            Wait(100);
+        }
+        if (intensityLeft - intensityRight >= 5){
+            OnFwd(LEFT_MOTOR,40);
+            OnRev(RIGHT_MOTOR,40);
+            Wait(50);
+        }
+        if (intensityRight - intensityLeft > 5){
+            OnFwd(RIGHT_MOTOR,40);
+            OnRev(LEFT_MOTOR,40);
+            Wait(50);
+        }
+
+
+
+
+    }
+
+
+
+
+}
+

@@ -1,0 +1,92 @@
+task main() {
+     int color;
+     int turn;
+     int threshold;
+     int power = 90;
+     int min = 999;
+     int max = -1;
+     unsigned long end_time;
+     #define RIGHT_MOTOR OUT_C
+     #define LEFT_MOTOR OUT_B
+     #define BOTH_MOTORS OUT_BC
+
+
+     SetSensorLight(IN_3);
+     //SetSensorLight(IN_4);
+     SetSensorTouch(IN_2);
+
+     Wait(200);
+     
+     // calibration: turn left
+
+     end_time = CurrentTick() + 500;
+     OnFwd(RIGHT_MOTOR, 50);
+     OnRev(LEFT_MOTOR, 50);
+     while (CurrentTick() < end_time) {
+         color = Sensor(IN_3);
+         if (color > max) {
+             max = color;
+         } else if (color < min) {
+             min = color;
+         }
+     }
+
+     // calibration: turn right
+
+     end_time = CurrentTick() + 1000;
+     OnFwd(LEFT_MOTOR, 50);
+     OnRev(RIGHT_MOTOR, 50);
+     while (CurrentTick() < end_time) {
+         color = Sensor(IN_3);
+         if (color > max) {
+             max = color;
+         } else if (color < min) {
+             min = color;
+         }
+     }
+
+     threshold = (min+max)/2;
+
+     ClearLine(LCD_LINE3);
+     NumOut(40, LCD_LINE3, threshold);
+
+     // calibration done, find the edge of the line
+
+     OnFwd(RIGHT_MOTOR, 50);
+     OnRev(LEFT_MOTOR, 50);
+     while (Sensor(IN_3) != threshold) {
+        TextOut(5,LCD_LINE4,"              "); 
+        NumOut(5, LCD_LINE4, Sensor(IN_3));
+     }
+
+     TextOut(5,LCD_LINE1,"passed"); 
+     Off(BOTH_MOTORS);
+
+     // and follow it
+     
+    while (SENSOR_2 !=1 ) {
+         color = Sensor(IN_3);
+         TextOut(5,LCD_LINE6,"              "); 
+         NumOut(5, LCD_LINE6, Sensor(IN_3));
+        if (color <= threshold) {
+            OnFwd(BOTH_MOTORS,30);
+            Wait(100);
+            Off(BOTH_MOTORS);
+            Wait(10);
+        }
+        else if (color > threshold) {
+            OnFwd(LEFT_MOTOR,30);
+            OnRev(RIGHT_MOTOR,30);
+            Wait(100);
+            Off(BOTH_MOTORS);
+            Wait(10);         
+        }
+    }
+
+
+
+
+
+
+
+}

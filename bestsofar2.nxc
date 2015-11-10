@@ -1,0 +1,106 @@
+int sem;
+mutex moveMutex;
+int insem;
+int fromother;
+
+
+task move_circle() {
+    if (fromother == 1){
+        Off (OUT_AC);
+        fromother = 0;
+        Wait(1000);
+    }
+
+    while (true) {
+
+        until (sem == 0); 
+            sem = 1;
+            Acquire(moveMutex);
+            OnFwd(OUT_A, 100);
+            OnRev(OUT_C,100);
+
+            sem = 0;
+
+            Release(moveMutex);
+
+            fromother = 1;
+        until (sem == 0); 
+
+    }
+}
+
+task attack() {
+    insem = 0;
+
+    while (true){
+
+        
+        while ((SensorUS(IN_2)<50) && ((sem == 0) || (insem == 1))){
+            if (fromother == 1){
+                Acquire(moveMutex);
+                Off(OUT_AC);
+                Wait(10);
+                Release(moveMutex);
+                fromother = 0;
+                TextOut(5,LCD_LINE2,"from other");
+            }
+            insem = 1;
+            fromother = 0;
+            sem = 1;
+            Acquire(moveMutex);
+            OnFwd(OUT_AC, 100); 
+            Release(moveMutex);
+            TextOut(5,LCD_LINE5,"enter attack");
+            Wait(1000);
+
+        }
+        TextOut(5,LCD_LINE2,"                     ");
+        if (insem ==1){
+            TextOut(5,LCD_LINE6,"out attack");
+        }
+        fromother = 1;
+        sem = 0;
+        //insem = 0;
+        TextOut(5,LCD_LINE5,"                           ");
+        }
+
+}
+
+
+
+task side_defence() {
+
+    while (true){
+        if (SENSOR_1 == 1){
+            Acquire(moveMutex);
+            TextOut(5,LCD_LINE8,"in touch right"); 
+            OnFwd(OUT_AC, 100);
+            Wait(700);
+            OnRev(OUT_C, 100);
+            Wait (500);
+            Release(moveMutex);
+        }
+        if (SENSOR_4 == 1){
+             
+            Acquire(moveMutex);
+            TextOut(5,LCD_LINE8,"in touch right"); 
+            OnFwd(OUT_AC, 100);
+            Wait(700);
+            OnRev(OUT_A, 100);
+            Wait (500);
+            Release(moveMutex);
+        }
+
+    }
+}
+
+
+task main()
+{
+    SetSensorTouch(IN_1);
+    SetSensorTouch(IN_4);
+    SetSensorUltrasonic(IN_2);
+    sem = 0;
+    fromother = 0;
+    Precedes(move_circle, attack,side_defence);
+}

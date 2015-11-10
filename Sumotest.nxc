@@ -1,0 +1,31 @@
+#define NEAR 25  //cm
+mutex moveMutex;
+
+task spin_circle() {
+while (true){
+	Acquire(moveMutex);
+	OnFwd(OUT_A,50);
+	OnRev(OUT_C,50);
+	while(SensorUS(IN_4) > NEAR);
+	Off(OUT_AC);
+	Wait(1000);
+	Release(moveMutex);
+	}
+}
+
+task check_sensors(){}
+
+
+
+
+
+task main(){
+	
+
+
+    Precedes(spin_circle, check_sensors);
+    SetSensorTouch(IN_1);
+    SetSensorLowspeed(IN_4);
+	SetSensorLight(IN_2);
+
+}

@@ -1,0 +1,2 @@
+thread main OnFwd(OUT_BC,25) wait 4000 OnRev(OUT_BC,25) wait 4000 Off(OUT_BC) exit
+endt

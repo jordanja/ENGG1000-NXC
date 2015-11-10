@@ -1,0 +1,140 @@
+task main() {
+     int color;
+     int turn;
+     int threshold;
+     int power = 90;
+     int min = 999;
+     int max = -1;
+     int counter = 0;
+     int white;
+     unsigned long end_time;
+     #define RIGHT_MOTOR OUT_C
+     #define LEFT_MOTOR OUT_B
+     #define BOTH_MOTORS OUT_BC
+
+
+     SetSensorLight(IN_3);
+     SetSensorLight(IN_4);
+     SetSensorTouch(IN_2);
+
+     Wait(200);
+     
+     // calibration: turn left
+
+     end_time = CurrentTick() + 700;
+     OnFwd(RIGHT_MOTOR, 50);
+     OnRev(LEFT_MOTOR, 50);
+     while (CurrentTick() < end_time) {
+         color = Sensor(IN_3);
+         if (color > max) {
+             max = color;
+         } else if (color < min) {
+             min = color;
+         }
+     }
+
+     // calibration: turn right
+
+     end_time = CurrentTick() + 1500;
+     OnFwd(LEFT_MOTOR, 50);
+     OnRev(RIGHT_MOTOR, 50);
+     while (CurrentTick() < end_time) {
+         color = Sensor(IN_3);
+         if (color > max) {
+             max = color;
+         } else if (color < min) {
+             min = color;
+         }
+     }
+
+     threshold = (min+max)/2;
+
+     ClearLine(LCD_LINE3);
+     NumOut(40, LCD_LINE3, threshold);
+
+     // calibration done, find the edge of the line
+
+     OnFwd(RIGHT_MOTOR, 50);
+     OnRev(LEFT_MOTOR, 50);
+     while (Sensor(IN_3) > threshold) {
+     }
+     TextOut(5,LCD_LINE1,"passed"); 
+     Off(BOTH_MOTORS);
+     Wait(10);
+     // and follow it
+    while(SENSOR_2 != 1){
+        color = Sensor(IN_3);
+        NumOut(40, LCD_LINE5, color);
+        TextOut(40,LCD_LINE5,"                 "); 
+
+
+
+
+        if (color <= threshold*1.1){
+           OnFwd(BOTH_MOTORS, 20);
+           Wait(100);
+
+        }  else if ((color > threshold * 1.1) && (color < threshold* 1.15)){
+            Off(BOTH_MOTORS);
+            Wait(10);
+
+            OnRev(LEFT_MOTOR,20);
+            OnFwd(RIGHT_MOTOR,20);
+            Wait(100);
+            
+        } else {
+            Off(BOTH_MOTORS);
+            Wait(10);
+
+            OnRev(RIGHT_MOTOR,20);
+            OnFwd(LEFT_MOTOR,20);
+            while (Sensor(IN_3) > threshold) {
+            }
+         
+        }     
+
+
+
+
+    }
+
+
+
+
+     //     color = Sensor(IN_3);
+
+     //     turn = power+200*(threshold-color)/(max-min);
+     //     if (turn > 100)
+     //        turn = 50;
+     //     if (turn < 0)
+     //        turn = -25;
+     //     OnFwd(RIGHT_MOTOR, turn);
+     //     turn = power-200*(threshold-color)/(max-min);
+     //     if (turn > 100)
+     //        turn = 50;
+     //     if (turn < 0)
+     //        turn = -25;
+     //     OnFwd(LEFT_MOTOR, turn);
+     //     while (Sensor(IN_4) > 75){
+     //        TextOut(5,LCD_LINE3,"left");
+     //        OnRev(LEFT_MOTOR,25);
+     //        OnFwd(RIGHT_MOTOR,25);
+     //        Wait(300);
+     //        TextOut(5,LCD_LINE3,"        ");
+     //     }
+     //    while (Sensor(IN_4) < threshold){
+     //        TextOut(5,LCD_LINE3,"left");
+     //        OnFwd(LEFT_MOTOR,25);
+     //        OnFwd(RIGHT_MOTOR,25);
+     //        Wait(300);
+     //        TextOut(5,LCD_LINE3,"        ");
+     //     }
+
+
+
+
+
+
+
+
+}

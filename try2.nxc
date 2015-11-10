@@ -1,0 +1,31 @@
+mutex moveMutex;
+
+task move_square()
+{
+    while (true)
+    {
+       // Acquire(moveMutex);
+        OnFwd(OUT_AC, 75); 
+        OnRev(OUT_C, 75), 
+       // Release(moveMutex);
+    }
+}
+
+task check_sensors()
+{
+    while (true)
+    {
+        while (SensorUS(IN_4)<40){
+           // Acquire(moveMutex);
+            OnFwd(OUT_AC, 75); Wait(500);
+
+            //Release(moveMutex);
+        }
+    }
+}
+
+task main()
+{
+    Precedes(move_square, check_sensors);
+    SetSensorUltrasonic(IN_4);
+}

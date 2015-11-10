@@ -1,0 +1,11 @@
+#define NEAR 25 //cm
+task main(){ 
+	SetSensorLowspeed(IN_4); 
+	while(true){
+		OnFwd(OUT_AC,60); 
+		while(SensorUS(IN_4)>NEAR); 
+		Off(OUT_AC); 
+		OnRev(OUT_C,100); 
+		Wait(200);
+	} 
+}

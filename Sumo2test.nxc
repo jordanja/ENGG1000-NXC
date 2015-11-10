@@ -1,0 +1,107 @@
+#define LEFT_WHEEL_PORT OUT_C
+#define RIGHT_WHEEL_PORT OUT_A
+
+#define SCAN_WHEEL_SPEED 70
+#define DESTROY_WHEEL_SPEED 100
+
+#define BEGINING_WAIT_TIME 3000
+
+//#define LIGHT_SENSOR_1_PORT IN_1
+//#define LIGHT_SENSOR_2_PORT IN_2
+//#define LIGHT_SENSROR_THRESHOLD 30
+//#define LIGHT_SENSOR_TYPE IN_TYPE_LIGHT_ACTIVE
+
+#define ULTRASONIC_SENSOR_PORT IN_4
+#define DISTANCE_THRESHOLD 40
+
+#define TRUE 1
+#define FALSE 0
+
+
+task lookForOpponent();
+task destroyRobot();
+int validateUSSensor();
+
+task main()
+{
+	Wait(BEGINING_WAIT_TIME);
+	start lookForOpponent;	
+	while (TRUE) {
+
+	}
+}
+
+task lookForOpponent(){
+	SetSensorLowspeed(ULTRASONIC_SENSOR_PORT); 
+ 
+	while(true){
+		OnFwd(RIGHT_WHEEL_PORT,SCAN_WHEEL_SPEED); 
+		OnRev(LEFT_WHEEL_PORT,SCAN_WHEEL_SPEED);
+		while(SensorUS(ULTRASONIC_SENSOR_PORT)>DISTANCE_THRESHOLD); 
+		Off(RIGHT_WHEEL_PORT);
+		Off(LEFT_WHEEL_PORT);
+	
+
+		start destroyRobot;
+	}
+}
+
+task destroyRobot(){
+	OnFwd(LEFT_WHEEL_PORT,DESTROY_WHEEL_SPEED);
+	OnFwd(RIGHT_WHEEL_PORT,DESTROY_WHEEL_SPEED);
+	while(TRUE) {
+		if (validateUSSensor() == FALSE) {
+			Off(LEFT_WHEEL_PORT);
+			Off(RIGHT_WHEEL_PORT);
+			OnFwd(LEFT_WHEEL_PORT, DESTROY_WHEEL_SPEED);
+			OnRev(RIGHT_WHEEL_PORT, DESTROY_WHEEL_SPEED);
+		}
+		else {
+			OnFwd(LEFT_WHEEL_PORT, SCAN_WHEEL_SPEED);
+			OnFwd(RIGHT_WHEEL_PORT, SCAN_WHEEL_SPEED);
+		}
+	}
+}
+
+
+int validateUSSensor() {
+	int count = 0;
+	int sensorTrue = 0;
+	while (count < 15) {
+		if (SensorUS(ULTRASONIC_SENSOR_PORT) != 255) {
+			sensorTrue ++;
+		}
+		count++;
+	}
+	if (sensorTrue > 5) {
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

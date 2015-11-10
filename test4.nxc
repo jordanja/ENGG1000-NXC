@@ -1,0 +1,103 @@
+task main() {
+    int intensityLeft;
+    int intensityRight;
+    int leftPower;
+    int rightPower;
+    int turn;
+    int threshold;
+    int power = 30;
+    int min = 999;
+    int max = -1;
+    unsigned long end_time;
+    #define RIGHT_MOTOR OUT_C
+    #define LEFT_MOTOR OUT_B
+    #define BOTH_MOTORS OUT_BC
+
+
+    SetSensorLight(IN_3);
+    SetSensorLight(IN_4);
+    Wait(200);
+
+    // calibration: turn left
+
+    end_time = CurrentTick() + 500;
+    OnFwd(RIGHT_MOTOR, 50);
+    OnRev(LEFT_MOTOR, 50);
+    while (CurrentTick() < end_time) {
+        intensityLeft = Sensor(IN_3);
+        if (intensityLeft > max) {
+            max = intensityLeft;
+        } else if (intensityLeft < min) {
+            min = intensityLeft;
+        }
+    }
+
+    // calibration: turn right
+
+    end_time = CurrentTick() + 1000;
+    OnFwd(LEFT_MOTOR, 50);
+    OnRev(RIGHT_MOTOR, 50);
+    while (CurrentTick() < end_time) {
+        intensityLeft = Sensor(IN_3);
+        if (intensityLeft > max) {
+            max = intensityLeft;
+        } else if (intensityLeft < min) {
+            min = intensityLeft;
+        }
+    }
+
+    threshold = (min+max)/2;
+
+    ClearLine(LCD_LINE3);
+    NumOut(40, LCD_LINE2, threshold);
+
+    // calibration done, find the edge of the line
+
+    OnFwd(RIGHT_MOTOR, 50);
+    OnRev(LEFT_MOTOR, 50);
+    while (Sensor(IN_3) > threshold) {
+    }
+    Wait(200);
+    TextOut(5,LCD_LINE1,"found line"); 
+    Off(BOTH_MOTORS);
+
+    // and follow it
+
+    while (true) {
+        intensityLeft = Sensor(IN_3);
+        intensityRight = Sensor(IN_4) + 12;
+        TextOut(5,LCD_LINE1,"                                                                  "); 
+        NumOut(5, LCD_LINE3, intensityLeft);
+        NumOut(40, LCD_LINE3, intensityRight);
+
+
+        if (abs(intensityLeft - intensityRight) < 3){
+            TextOut(5,LCD_LINE1,"go forward");
+            OnFwd(BOTH_MOTORS,30);
+            Wait(100);
+        }
+        if (intensityLeft - intensityRight > 3){
+            TextOut(5,LCD_LINE1,"go right");
+            OnFwd(LEFT_MOTOR,30);
+            OnRev(RIGHT_MOTOR,30);
+            Wait(50);
+        }
+        if (intensityRight - intensityLeft > 3){
+            TextOut(5,LCD_LINE1,"go left");
+            OnFwd(RIGHT_MOTOR,30);
+            OnRev(LEFT_MOTOR,30);
+            Wait(50);
+        }
+        TextOut(5,LCD_LINE1,"                           ");
+/*
+        if (){
+
+        }
+*/
+
+
+
+
+
+    }
+}
